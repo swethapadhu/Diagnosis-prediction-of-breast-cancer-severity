@@ -1,4 +1,4 @@
-# DIAGNOSIS OF BREAST CANCER
+### DIAGNOSIS OF BREAST CANCER
 
 The goal of this project was to develop a breast cancer malignancy prediction algorithm that helps predict malignancy in future query images accurately and efficiently. 
 
