@@ -5,6 +5,7 @@ fid=fopen([path '\' fnm],'r+');
 
 i=1;servity=0;tissue=0;
 
+% Parse the image dataset
 while feof(fid)~=1 
     file=fgetl(fid);
     k(i)=ftell(fid);
@@ -26,6 +27,9 @@ while feof(fid)~=1
     i=i+1;
    
 end
+
+% Load the images and extract LBPH features 
+
 for i=1:330
     A=imread([path '\' name(i,:) '.pgm']);
     if center(i,:)~=[0 0 0]
@@ -74,12 +78,16 @@ end
 % regtree=fitctree(Train,trainserv');
 % testpred=predict(regtree,Test);
 
+% Parse FV values
+
 importdata('data.csv');
 FV= [area_mean area_se area_worst compactness_mean compactness_se compactness_worst, concavepoints_mean, concavepoints_se, concavepoints_worst concavity_mean, concavity_se, concavity_worst concavity_mean, concavity_se, concavity_worst fractal_dimension_mean, fractal_dimension_se, fractal_dimension_worst, id, perimeter_mean, perimeter_se, perimeter_worst, radius_mean, radius_se, radius_worst, smoothness_mean, smoothness_se, smoothness_worst, symmetry_mean, symmetry_se, symmetry_worst, texture_mean, texture_se, texture_worst];
 FVtrain=FV(1:369,:);
 FVTest=FV(370:569,:);
 trainlab=diagnosis(1:369);
 testlab=diagnosis(370:569);
+
+% Train and classify using SVM
 
 svm=svmtrain(FVtrain,trainlab);
 pred=svmclassify(svm,FVTest);
@@ -91,6 +99,8 @@ perc=perc+1;
 end
 end
 
+% Infer using classification tree
+
 regtree=fitctree(FVtrain,trainlab);
 testpred=predict(regtree,FVTest);
 
@@ -101,6 +111,8 @@ perc2=perc2+1;
 end
 end
 
+% Predict using knn hamming distance
+
 knn=fitcknn(FVtrain,trainlab,'Distance','hamming'); %'cityblock' %'euclidean'
 testpredknn=predict(knn,FVTest);
 
@@ -110,6 +122,8 @@ if testpredknn{i}==testlab{i}
 perc3=perc3+1;
 end
 end
+
+% Malignant is 0 and Benign is 1
 
 for i=1:200
     if pred{i}=='M';
@@ -134,9 +148,12 @@ for i=1:200
     end
 end
 
+% Calculate the accuracy of each of the methods 
+
 accSVM=sum(predmat==testlabmat)/200
 acctree=sum(testpredmat==testlabmat)/200
 accknn=sum(testpredknnmat==testlabmat)/200
 
+% Plot the confusion matrix
 
 plotconfusion(testpredknnmat,testlabmat);
